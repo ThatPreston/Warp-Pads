@@ -13,11 +13,9 @@ public class WarpButton extends ExtendedButton {
         this.text = text;
     }
     @Override
-    public void renderWidget(PoseStack stack, int mouseX, int mouseY, float partialTicks) {
+    public void renderButton(PoseStack stack, int mouseX, int mouseY, float partialTicks) {
         Minecraft minecraft = Minecraft.getInstance();
         Font font = minecraft.font;
-        int x = getX();
-        int y = getY();
         int v = this.isHoveredOrFocused() ? 189 : 166;
         blit(stack, x, y, 0, v, 144, 23);
         int x2 = x + (144 - font.width(text)) / 2;

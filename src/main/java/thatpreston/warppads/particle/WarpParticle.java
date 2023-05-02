@@ -6,7 +6,6 @@ import net.minecraft.core.particles.SimpleParticleType;
 
 public class WarpParticle extends TextureSheetParticle {
     public SpriteSet sprites;
-    private float rotSpeed;
     protected WarpParticle(ClientLevel level, double x, double y, double z, double r, double g, double b, SpriteSet sprites) {
         super(level, x, y, z);
         this.sprites = sprites;

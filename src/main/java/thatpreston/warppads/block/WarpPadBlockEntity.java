@@ -87,7 +87,7 @@ public class WarpPadBlockEntity extends BlockEntity implements IForgeBlockEntity
     private void warpOut(ServerPlayer player, ServerLevel level, BlockPos pos, BlockPos targetPos) {
         warping = true;
         sync(level, pos);
-        level.playSound(null, pos, WarpPads.WARP_OUT_SOUND.get(), SoundSource.BLOCKS);
+        level.playSound(null, pos, WarpPads.WARP_OUT_SOUND.get(), SoundSource.BLOCKS, 1, 1);
         addTicket(player, level, pos);
         scheduleTick(level, pos, 30);
         this.targetPos = targetPos;
@@ -126,7 +126,7 @@ public class WarpPadBlockEntity extends BlockEntity implements IForgeBlockEntity
     private void warpIn(ServerLevel level, BlockPos pos) {
         warping = true;
         sync(level, pos);
-        level.playSound(null, pos, WarpPads.WARP_IN_SOUND.get(), SoundSource.BLOCKS);
+        level.playSound(null, pos, WarpPads.WARP_IN_SOUND.get(), SoundSource.BLOCKS, 1, 1);
         scheduleTick(level, pos, 40);
     }
     private void setIdle(ServerLevel level, BlockPos pos) {

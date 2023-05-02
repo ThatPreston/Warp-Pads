@@ -13,7 +13,7 @@ public class WarpPadUtils {
         return RANDOM.nextFloat();
     }
     public static Vec3 getTopCenter(BlockPos pos) {
-        return pos.getCenter().add(0, 0.5F, 0);
+        return new Vec3(pos.getX() + 0.5F, pos.getY() + 1, pos.getZ() + 0.5F);
     }
     public static float getDirectionX(float angle) {
         return (float)Math.sin(2 * Math.PI * angle);

@@ -21,7 +21,7 @@ public class WarpPadsClient {
     }
     @SubscribeEvent
     public static void registerParticleProviders(final RegisterParticleProvidersEvent event) {
-        event.registerSpriteSet(WarpPads.WARP_PARTICLE.get(), WarpParticle.Provider::new);
+        event.register(WarpPads.WARP_PARTICLE.get(), WarpParticle.Provider::new);
     }
     @SubscribeEvent
     public static void registerRenderers(final EntityRenderersEvent.RegisterRenderers event) {
