@@ -39,9 +39,9 @@ public class WarpConfigMenu extends AbstractContainerMenu {
             this.addSlot(new Slot(inventory, x, 8 + x * 18, 109));
         }
     }
-    public WarpConfigMenu(int id, Inventory inventory, ContainerLevelAccess levelAccess, WarpPadInfo entry, IItemHandler itemHandler) {
+    public WarpConfigMenu(int id, Inventory inventory, ContainerLevelAccess levelAccess, WarpPadInfo info, IItemHandler itemHandler) {
         this(id, inventory, levelAccess, itemHandler);
-        this.info = entry;
+        this.info = info;
     }
     public WarpConfigMenu(int id, Inventory inventory, FriendlyByteBuf data) {
         this(id, inventory, ContainerLevelAccess.NULL, new ItemStackHandler(1) {

@@ -50,8 +50,8 @@ public class WarpPadBlock extends BaseEntityBlock {
                     NetworkHooks.openScreen(serverPlayer, provider, data -> {
                         data.writeBlockPos(pos);
                         data.writeInt(warpPads.size());
-                        for(WarpPadInfo entry : warpPads) {
-                            entry.write(data);
+                        for(WarpPadInfo info : warpPads) {
+                            info.write(data);
                         }
                     });
                 }

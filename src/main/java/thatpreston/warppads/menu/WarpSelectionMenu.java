@@ -36,8 +36,7 @@ public class WarpSelectionMenu extends AbstractContainerMenu {
         warpPads = new ArrayList<>();
         int count = data.readInt();
         for(int i = 0; i < count; i++) {
-            WarpPadInfo entry = new WarpPadInfo(data);
-            warpPads.add(entry);
+            warpPads.add(new WarpPadInfo(data));
         }
     }
     public static MenuProvider getMenuProvider(BlockPos pos, List<WarpPadInfo> warpPads) {
