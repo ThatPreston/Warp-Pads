@@ -3,7 +3,7 @@ loaderVersion="[45,)"
 license="MPL-2.0"
 [[mods]]
 modId="warppads"
-version="1.0"
+version="1.19.4-1.0"
 displayName="Warp Pads"
 logoFile="icon.png"
 credits=""
