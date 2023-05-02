@@ -1,0 +1,8 @@
+{
+  "block.warppads.warp_pad": "Warp Pad",
+  "container.warppads.warp_selection": "Warp Selection",
+  "container.warppads.warp_config": "Warp Pad Config",
+  "container.warppads.warp_config.hint": "Warp Pad Nmae",
+  "sounds.warppads.warp_out": "Something left on a warp pad",
+  "sounds.warppads.warp_in": "Something arrived on a warp pad"
+}

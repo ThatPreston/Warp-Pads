@@ -1,0 +1,14 @@
+{
+  "warp_out": {
+    "subtitle": "sounds.warppads.warp_out",
+    "sounds": [
+      "warppads:warp_out"
+    ]
+  },
+  "warp_in": {
+    "subtitle": "sounds.warppads.warp_in",
+    "sounds": [
+      "warppads:warp_in"
+    ]
+  }
+}
