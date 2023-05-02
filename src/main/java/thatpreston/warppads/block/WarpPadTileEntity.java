@@ -34,7 +34,7 @@ import thatpreston.warppads.server.WarpPadInfo;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class WarpPadBlockEntity extends TileEntity implements IForgeTileEntity, ITickableTileEntity {
+public class WarpPadTileEntity extends TileEntity implements IForgeTileEntity, ITickableTileEntity {
     private final ItemStackHandler itemStackHandler = createItemStackHandler();
     private final LazyOptional<IItemHandler> itemHandlerOptional = LazyOptional.of(() -> itemStackHandler);
     private boolean warping = false;
@@ -42,7 +42,7 @@ public class WarpPadBlockEntity extends TileEntity implements IForgeTileEntity, 
     private boolean render = false;
     private float[] cachedColor;
     private BlockPos targetPos;
-    public WarpPadBlockEntity() {
+    public WarpPadTileEntity() {
         super(WarpPads.WARP_PAD.get());
     }
     private ItemStackHandler createItemStackHandler() {
@@ -105,7 +105,7 @@ public class WarpPadBlockEntity extends TileEntity implements IForgeTileEntity, 
             }
         }
         scheduleTick(world, pos, 10);
-        if(world.getBlockEntity(targetPos) instanceof WarpPadBlockEntity toPad && !toPad.isRemoved()) {
+        if(world.getBlockEntity(targetPos) instanceof WarpPadTileEntity toPad && !toPad.isRemoved()) {
             toPad.tryWarpIn(world);
         } else if(players == 0) {
             WarpPadInfo info = WarpPadData.get(world).getWarpPad(targetPos);
@@ -142,7 +142,7 @@ public class WarpPadBlockEntity extends TileEntity implements IForgeTileEntity, 
     public static void handleWarpRequest(ServerPlayerEntity player, BlockPos fromPos, BlockPos toPos) {
         ServerWorld world = player.getLevel();
         TileEntity fromEntity = world.getBlockEntity(fromPos);
-        if(fromEntity instanceof WarpPadBlockEntity fromPad && !fromPad.isWarping()) {
+        if(fromEntity instanceof WarpPadTileEntity fromPad && !fromPad.isWarping()) {
             WarpPadInfo info = WarpPadData.get(world).getWarpPad(toPos);
             if(info != null && !info.isWarping()) {
                 info.setWarping(true);
@@ -210,7 +210,7 @@ public class WarpPadBlockEntity extends TileEntity implements IForgeTileEntity, 
     @Nullable
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket();
+        return new SUpdateTileEntityPacket(worldPosition, 0, getUpdateTag());
     }
     @Override
     public AxisAlignedBB getRenderBoundingBox() {

@@ -15,9 +15,9 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.ForgeRenderTypes;
 import thatpreston.warppads.WarpPads;
 import thatpreston.warppads.WarpPadUtils;
-import thatpreston.warppads.block.WarpPadBlockEntity;
+import thatpreston.warppads.block.WarpPadTileEntity;
 
-public class WarpPadRenderer extends TileEntityRenderer<WarpPadBlockEntity> {
+public class WarpPadRenderer extends TileEntityRenderer<WarpPadTileEntity> {
     private static final ResourceLocation BEAM_TEXTURE = new ResourceLocation("warppads", "textures/warp_beam.png");
     private static final float[] DEFAULT_COLOR = {0.5F, 1, 1};
     private float[] color;
@@ -25,7 +25,7 @@ public class WarpPadRenderer extends TileEntityRenderer<WarpPadBlockEntity> {
         super(dispatcher);
     }
     @Override
-    public void render(WarpPadBlockEntity entity, float partialTicks, MatrixStack stack, IRenderTypeBuffer buffer, int light, int overlay) {
+    public void render(WarpPadTileEntity entity, float partialTicks, MatrixStack stack, IRenderTypeBuffer buffer, int light, int overlay) {
         if(entity.shouldRender()) {
             float animation = entity.getAnimation() + partialTicks;
             float y1 = 0;

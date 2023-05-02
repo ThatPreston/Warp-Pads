@@ -4,7 +4,7 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
-import thatpreston.warppads.block.WarpPadBlockEntity;
+import thatpreston.warppads.block.WarpPadTileEntity;
 
 import java.util.function.Supplier;
 
@@ -25,7 +25,7 @@ public class WarpRequest {
     public static void handle(WarpRequest message, Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> {
             ServerPlayerEntity player = context.get().getSender();
-            WarpPadBlockEntity.handleWarpRequest(player, message.fromPos, message.toPos);
+            WarpPadTileEntity.handleWarpRequest(player, message.fromPos, message.toPos);
         });
         context.get().setPacketHandled(true);
     }

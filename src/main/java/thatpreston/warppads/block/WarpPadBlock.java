@@ -34,7 +34,7 @@ public class WarpPadBlock extends ContainerBlock {
     @Override
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
         TileEntity entity = world.getBlockEntity(pos);
-        if(entity instanceof WarpPadBlockEntity warpPad) {
+        if(entity instanceof WarpPadTileEntity warpPad) {
             if(world instanceof ServerWorld serverWorld && player instanceof ServerPlayerEntity serverPlayer) {
                 WarpPadInfoHolder holder = WarpPadData.get(serverWorld);
                 if(!holder.hasWarpPad(pos) || player.isCrouching()) {
@@ -61,7 +61,7 @@ public class WarpPadBlock extends ContainerBlock {
     public void tick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
         if(!world.isClientSide) {
             TileEntity entity = world.getBlockEntity(pos);
-            if(entity instanceof WarpPadBlockEntity warpPad) {
+            if(entity instanceof WarpPadTileEntity warpPad) {
                 warpPad.handleScheduledTick(world, pos);
             }
         }
@@ -69,7 +69,7 @@ public class WarpPadBlock extends ContainerBlock {
     @Nullable
     @Override
     public TileEntity newBlockEntity(IBlockReader reader) {
-        return new WarpPadBlockEntity();
+        return new WarpPadTileEntity();
     }
     @Override
     public void onRemove(BlockState state, World level, BlockPos pos, BlockState newState, boolean moving) {

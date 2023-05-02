@@ -20,7 +20,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import thatpreston.warppads.block.WarpPadBlock;
-import thatpreston.warppads.block.WarpPadBlockEntity;
+import thatpreston.warppads.block.WarpPadTileEntity;
 import thatpreston.warppads.menu.WarpConfigMenu;
 import thatpreston.warppads.menu.WarpSelectionMenu;
 import thatpreston.warppads.network.PacketHandler;
@@ -35,7 +35,7 @@ public class WarpPads {
     public static final DeferredRegister<ContainerType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.CONTAINERS, "warppads");
     public static final RegistryObject<Block> WARP_PAD_BLOCK = BLOCKS.register("warp_pad", WarpPadBlock::new);
     public static final RegistryObject<Item> WARP_PAD_ITEM = ITEMS.register("warp_pad", () -> new BlockItem(WARP_PAD_BLOCK.get(), new Item.Properties().tab(ItemGroup.TAB_TRANSPORTATION)));
-    public static final RegistryObject<TileEntityType<WarpPadBlockEntity>> WARP_PAD = BLOCK_ENTITY_TYPES.register("warp_pad", () -> TileEntityType.Builder.of(WarpPadBlockEntity::new, WARP_PAD_BLOCK.get()).build(null));
+    public static final RegistryObject<TileEntityType<WarpPadTileEntity>> WARP_PAD = BLOCK_ENTITY_TYPES.register("warp_pad", () -> TileEntityType.Builder.of(WarpPadTileEntity::new, WARP_PAD_BLOCK.get()).build(null));
     public static final RegistryObject<SoundEvent> WARP_OUT_SOUND = SOUND_EVENTS.register("warp_out", () -> new SoundEvent(new ResourceLocation("warppads", "warp_out")));
     public static final RegistryObject<SoundEvent> WARP_IN_SOUND = SOUND_EVENTS.register("warp_in", () -> new SoundEvent(new ResourceLocation("warppads", "warp_in")));
     public static final RegistryObject<BasicParticleType> WARP_PARTICLE = PARTICLE_TYPES.register("warp_particle", () -> new BasicParticleType(true));
