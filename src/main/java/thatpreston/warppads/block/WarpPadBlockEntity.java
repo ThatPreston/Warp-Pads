@@ -1,41 +1,40 @@
 package thatpreston.warppads.block;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.level.TicketType;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.DyeItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.DyeItem;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.server.TicketType;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.extensions.IForgeBlockEntity;
+import net.minecraftforge.common.extensions.IForgeTileEntity;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.antlr.v4.runtime.misc.NotNull;
 import thatpreston.warppads.WarpPads;
 import thatpreston.warppads.WarpPadUtils;
 import thatpreston.warppads.server.WarpPadData;
 import thatpreston.warppads.server.WarpPadInfo;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
-public class WarpPadBlockEntity extends BlockEntity implements IForgeBlockEntity {
+public class WarpPadBlockEntity extends TileEntity implements IForgeTileEntity, ITickableTileEntity {
     private final ItemStackHandler itemStackHandler = createItemStackHandler();
     private final LazyOptional<IItemHandler> itemHandlerOptional = LazyOptional.of(() -> itemStackHandler);
     private boolean warping = false;
@@ -43,8 +42,8 @@ public class WarpPadBlockEntity extends BlockEntity implements IForgeBlockEntity
     private boolean render = false;
     private float[] cachedColor;
     private BlockPos targetPos;
-    public WarpPadBlockEntity(BlockPos pos, BlockState state) {
-        super(WarpPads.WARP_PAD.get(), pos, state);
+    public WarpPadBlockEntity() {
+        super(WarpPads.WARP_PAD.get());
     }
     private ItemStackHandler createItemStackHandler() {
         return new ItemStackHandler() {
@@ -65,17 +64,17 @@ public class WarpPadBlockEntity extends BlockEntity implements IForgeBlockEntity
     public ItemStackHandler getItemStackHandler() {
         return itemStackHandler;
     }
-    private static void sync(ServerLevel level, BlockPos pos) {
+    private static void sync(ServerWorld world, BlockPos pos) {
         BlockState state = WarpPads.WARP_PAD_BLOCK.get().defaultBlockState();
-        level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
+        world.sendBlockUpdated(pos, state, state, Constants.BlockFlags.BLOCK_UPDATE);
     }
-    private static void scheduleTick(Level level, BlockPos pos, int delay) {
-        level.scheduleTick(pos, WarpPads.WARP_PAD_BLOCK.get(), delay);
+    private static void scheduleTick(World world, BlockPos pos, int delay) {
+        world.getBlockTicks().scheduleTick(pos, WarpPads.WARP_PAD_BLOCK.get(), delay);
     }
-    private static void addTicket(ServerPlayer player, ServerLevel level, BlockPos pos) {
-        level.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, new ChunkPos(pos), 1, player.getId());
+    private static void addTicket(ServerPlayerEntity player, ServerWorld world, BlockPos pos) {
+        world.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, new ChunkPos(pos), 1, player.getId());
     }
-    private void onSync(CompoundTag tag) {
+    private void onSync(CompoundNBT tag) {
         itemStackHandler.deserializeNBT(tag.getCompound("inv"));
         warping = tag.getBoolean("warping");
         if(warping) {
@@ -84,70 +83,70 @@ public class WarpPadBlockEntity extends BlockEntity implements IForgeBlockEntity
         }
         cacheColor();
     }
-    private void warpOut(ServerPlayer player, ServerLevel level, BlockPos pos, BlockPos targetPos) {
+    private void warpOut(ServerPlayerEntity player, ServerWorld world, BlockPos pos, BlockPos targetPos) {
         warping = true;
-        sync(level, pos);
-        level.playSound(null, pos, WarpPads.WARP_OUT_SOUND.get(), SoundSource.BLOCKS, 1, 1);
-        addTicket(player, level, pos);
-        scheduleTick(level, pos, 30);
+        sync(world, pos);
+        world.playSound(null, pos, WarpPads.WARP_OUT_SOUND.get(), SoundCategory.BLOCKS, 1, 1);
+        addTicket(player, world, pos);
+        scheduleTick(world, pos, 30);
         this.targetPos = targetPos;
     }
-    private void teleport(ServerLevel level, BlockPos pos) {
-        AABB box = WarpPadUtils.getBoxAbovePosition(WarpPadUtils.getTopCenter(pos), 3, 6);
-        List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, box);
+    private void teleport(ServerWorld world, BlockPos pos) {
+        AxisAlignedBB box = WarpPadUtils.getBoxAbovePosition(WarpPadUtils.getTopCenter(pos), 3, 6);
+        List<LivingEntity> entities = world.getEntitiesOfClass(LivingEntity.class, box);
         int players = 0;
         for(LivingEntity entity : entities) {
             double x = entity.xo - pos.getX() + targetPos.getX();
             double y = entity.yo - pos.getY() + targetPos.getY();
             double z = entity.zo - pos.getZ() + targetPos.getZ();
             entity.teleportTo(x, y, z);
-            if(entity instanceof Player) {
+            if(entity instanceof PlayerEntity) {
                 players++;
             }
         }
-        scheduleTick(level, pos, 10);
-        if(level.getExistingBlockEntity(targetPos) instanceof WarpPadBlockEntity toPad && !toPad.isRemoved()) {
-            toPad.tryWarpIn(level);
+        scheduleTick(world, pos, 10);
+        if(world.getBlockEntity(targetPos) instanceof WarpPadBlockEntity toPad && !toPad.isRemoved()) {
+            toPad.tryWarpIn(world);
         } else if(players == 0) {
-            WarpPadInfo info = WarpPadData.get(level).getWarpPad(targetPos);
+            WarpPadInfo info = WarpPadData.get(world).getWarpPad(targetPos);
             if(info != null) {
                 info.setWarping(false);
             }
         }
         targetPos = null;
     }
-    private void tryWarpIn(ServerLevel level) {
-        WarpPadInfo info = WarpPadData.get(level).getWarpPad(worldPosition);
+    private void tryWarpIn(ServerWorld world) {
+        WarpPadInfo info = WarpPadData.get(world).getWarpPad(worldPosition);
         if(info != null && info.isWarping()) {
-            warpIn(level, worldPosition);
+            warpIn(world, worldPosition);
             info.setWarping(false);
         }
     }
-    private void warpIn(ServerLevel level, BlockPos pos) {
+    private void warpIn(ServerWorld world, BlockPos pos) {
         warping = true;
-        sync(level, pos);
-        level.playSound(null, pos, WarpPads.WARP_IN_SOUND.get(), SoundSource.BLOCKS, 1, 1);
-        scheduleTick(level, pos, 40);
+        sync(world, pos);
+        world.playSound(null, pos, WarpPads.WARP_IN_SOUND.get(), SoundCategory.BLOCKS, 1, 1);
+        scheduleTick(world, pos, 40);
     }
-    private void setIdle(ServerLevel level, BlockPos pos) {
+    private void setIdle(ServerWorld world, BlockPos pos) {
         warping = false;
-        sync(level, pos);
+        sync(world, pos);
     }
-    public void handleScheduledTick(ServerLevel level, BlockPos pos) {
+    public void handleScheduledTick(ServerWorld world, BlockPos pos) {
         if(targetPos != null) {
-            teleport(level, pos);
+            teleport(world, pos);
         } else {
-            setIdle(level, pos);
+            setIdle(world, pos);
         }
     }
-    public static void handleWarpRequest(ServerPlayer player, BlockPos fromPos, BlockPos toPos) {
-        ServerLevel level = player.getLevel();
-        BlockEntity fromEntity = level.getBlockEntity(fromPos);
+    public static void handleWarpRequest(ServerPlayerEntity player, BlockPos fromPos, BlockPos toPos) {
+        ServerWorld world = player.getLevel();
+        TileEntity fromEntity = world.getBlockEntity(fromPos);
         if(fromEntity instanceof WarpPadBlockEntity fromPad && !fromPad.isWarping()) {
-            WarpPadInfo info = WarpPadData.get(level).getWarpPad(toPos);
+            WarpPadInfo info = WarpPadData.get(world).getWarpPad(toPos);
             if(info != null && !info.isWarping()) {
                 info.setWarping(true);
-                fromPad.warpOut(player, level, fromPos, toPos);
+                fromPad.warpOut(player, world, fromPos, toPos);
             }
         }
     }
@@ -166,8 +165,11 @@ public class WarpPadBlockEntity extends BlockEntity implements IForgeBlockEntity
     public boolean shouldRender() {
         return render;
     }
-    public static void animateTick(Level level, BlockPos pos, BlockState state, WarpPadBlockEntity entity) {
-        entity.stepAnimation();
+    @Override
+    public void tick() {
+        if(level.isClientSide) {
+            stepAnimation();
+        }
     }
     public void cacheColor() {
         ItemStack stack = itemStackHandler.getStackInSlot(0);
@@ -184,40 +186,40 @@ public class WarpPadBlockEntity extends BlockEntity implements IForgeBlockEntity
     @Override
     public void onLoad() {
         super.onLoad();
-        if(level instanceof ServerLevel serverLevel) {
-            tryWarpIn(serverLevel);
+        if(level instanceof ServerWorld world) {
+            tryWarpIn(world);
         }
     }
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    public CompoundNBT save(CompoundNBT tag) {
         tag.put("inv", itemStackHandler.serializeNBT());
+        return super.save(tag);
     }
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void load(BlockState state, CompoundNBT tag) {
+        super.load(state, tag);
         onSync(tag);
     }
     @Override
-    public CompoundTag getUpdateTag() {
-        CompoundTag tag = super.getUpdateTag();
+    public CompoundNBT getUpdateTag() {
+        CompoundNBT tag = super.getUpdateTag();
         tag.putBoolean("warping", warping);
         tag.put("inv", itemStackHandler.serializeNBT());
         return tag;
     }
     @Nullable
     @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
+    public SUpdateTileEntityPacket getUpdatePacket() {
+        return new SUpdateTileEntityPacket();
     }
     @Override
-    public AABB getRenderBoundingBox() {
-        Vec3 pos = Vec3.atBottomCenterOf(getBlockPos());
+    public AxisAlignedBB getRenderBoundingBox() {
+        Vector3d pos = Vector3d.atBottomCenterOf(getBlockPos());
         return WarpPadUtils.getBoxAbovePosition(pos, 3, 7);
     }
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> capability) {
-        if(capability == ForgeCapabilities.ITEM_HANDLER) {
+        if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
             return itemHandlerOptional.cast();
         }
         return super.getCapability(capability);

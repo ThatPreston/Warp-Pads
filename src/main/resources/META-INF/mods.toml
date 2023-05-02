@@ -1,9 +1,9 @@
 modLoader="javafml"
-loaderVersion="[43,)"
+loaderVersion="[36,)"
 license="MPL-2.0"
 [[mods]]
 modId="warppads"
-version="1.19.2-1.0"
+version="1.16.5-1.0"
 displayName="Warp Pads"
 logoFile="icon.png"
 credits=""
@@ -14,12 +14,12 @@ A mod that adds Steven Universe inspired warp pads!
 [[dependencies.warppads]]
     modId="forge"
     mandatory=true
-    versionRange="[43,)"
+    versionRange="[36,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.warppads]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.19.2,1.20)"
+    versionRange="[1.16.5,1.17)"
     ordering="NONE"
     side="BOTH"

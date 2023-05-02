@@ -1,52 +1,50 @@
 package thatpreston.warppads.block;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.network.NetworkHooks;
-import org.jetbrains.annotations.Nullable;
-import thatpreston.warppads.WarpPads;
+import net.minecraft.block.AbstractBlock;
+import net.minecraft.block.BlockRenderType;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.ContainerBlock;
+import net.minecraft.block.material.Material;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.world.IBlockReader;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.fml.network.NetworkHooks;
 import thatpreston.warppads.menu.WarpConfigMenu;
 import thatpreston.warppads.menu.WarpSelectionMenu;
 import thatpreston.warppads.server.WarpPadData;
 import thatpreston.warppads.server.WarpPadInfo;
 import thatpreston.warppads.server.WarpPadInfoHolder;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Random;
 
-public class WarpPadBlock extends BaseEntityBlock {
+public class WarpPadBlock extends ContainerBlock {
     public WarpPadBlock() {
-        super(BlockBehaviour.Properties.of(Material.STONE));
+        super(AbstractBlock.Properties.of(Material.STONE));
     }
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
-        BlockEntity entity = level.getBlockEntity(pos);
+    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
+        TileEntity entity = world.getBlockEntity(pos);
         if(entity instanceof WarpPadBlockEntity warpPad) {
-            if(level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
-                WarpPadInfoHolder holder = WarpPadData.get(serverLevel);
+            if(world instanceof ServerWorld serverWorld && player instanceof ServerPlayerEntity serverPlayer) {
+                WarpPadInfoHolder holder = WarpPadData.get(serverWorld);
                 if(!holder.hasWarpPad(pos) || player.isCrouching()) {
                     WarpPadInfo info = holder.getNewWarpPad(pos);
-                    MenuProvider provider = WarpConfigMenu.getMenuProvider(info, warpPad.getItemStackHandler());
-                    NetworkHooks.openScreen(serverPlayer, provider, info::write);
+                    INamedContainerProvider provider = WarpConfigMenu.getMenuProvider(info, warpPad.getItemStackHandler());
+                    NetworkHooks.openGui(serverPlayer, provider, info::write);
                 } else {
                     List<WarpPadInfo> warpPads = holder.getWarpPads();
-                    MenuProvider provider = WarpSelectionMenu.getMenuProvider(pos, warpPads);
-                    NetworkHooks.openScreen(serverPlayer, provider, data -> {
+                    INamedContainerProvider provider = WarpSelectionMenu.getMenuProvider(pos, warpPads);
+                    NetworkHooks.openGui(serverPlayer, provider, data -> {
                         data.writeBlockPos(pos);
                         data.writeInt(warpPads.size());
                         for(WarpPadInfo entry : warpPads) {
@@ -55,38 +53,33 @@ public class WarpPadBlock extends BaseEntityBlock {
                     });
                 }
             }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return ActionResultType.sidedSuccess(world.isClientSide);
         }
-        return InteractionResult.PASS;
+        return ActionResultType.PASS;
     }
     @Override
-    public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if(!level.isClientSide) {
-            BlockEntity entity = level.getBlockEntity(pos);
+    public void tick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+        if(!world.isClientSide) {
+            TileEntity entity = world.getBlockEntity(pos);
             if(entity instanceof WarpPadBlockEntity warpPad) {
-                warpPad.handleScheduledTick(level, pos);
+                warpPad.handleScheduledTick(world, pos);
             }
         }
     }
     @Nullable
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new WarpPadBlockEntity(pos, state);
+    public TileEntity newBlockEntity(IBlockReader reader) {
+        return new WarpPadBlockEntity();
     }
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moving) {
+    public void onRemove(BlockState state, World level, BlockPos pos, BlockState newState, boolean moving) {
         super.onRemove(state, level, pos, newState, moving);
-        if(level instanceof ServerLevel serverLevel) {
+        if(level instanceof ServerWorld serverLevel) {
             WarpPadData.get(serverLevel).removeWarpPad(pos);
         }
     }
-    @Nullable
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return level.isClientSide ? createTickerHelper(type, WarpPads.WARP_PAD.get(), WarpPadBlockEntity::animateTick) : null;
-    }
-    @Override
-    public RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
+    public BlockRenderType getRenderShape(BlockState state) {
+        return BlockRenderType.MODEL;
     }
 }

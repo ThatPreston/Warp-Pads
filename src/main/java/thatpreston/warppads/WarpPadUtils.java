@@ -1,9 +1,9 @@
 package thatpreston.warppads;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.vector.Vector3d;
 
 import java.util.Random;
 
@@ -12,8 +12,8 @@ public class WarpPadUtils {
     public static float getRandom() {
         return RANDOM.nextFloat();
     }
-    public static Vec3 getTopCenter(BlockPos pos) {
-        return new Vec3(pos.getX() + 0.5F, pos.getY() + 1, pos.getZ() + 0.5F);
+    public static Vector3d getTopCenter(BlockPos pos) {
+        return Vector3d.upFromBottomCenterOf(pos, 1);
     }
     public static float getDirectionX(float angle) {
         return (float)Math.sin(2 * Math.PI * angle);
@@ -21,25 +21,25 @@ public class WarpPadUtils {
     public static float getDirectionZ(float angle) {
         return (float)Math.cos(2 * Math.PI * angle);
     }
-    public static Vec3 getDirection(float angle) {
+    public static Vector3d getDirection(float angle) {
         float x = getDirectionX(angle);
         float z = getDirectionZ(angle);
-        return new Vec3(x, 0, z);
+        return new Vector3d(x, 0, z);
     }
-    public static Vec3 getDirection() {
+    public static Vector3d getDirection() {
         return getDirection(getRandom());
     }
-    public static Vec3 getPositionOnSquare(Vec3 pos, float apothem) {
-        float radius = Mth.sqrt(2 * Mth.square(apothem));
-        Vec3 dir = getDirection().scale(radius);
-        double x = Mth.clamp(dir.x, -apothem, apothem);
-        double z = Mth.clamp(dir.z, -apothem, apothem);
+    public static Vector3d getPositionOnSquare(Vector3d pos, float apothem) {
+        float radius = MathHelper.sqrt(2 * MathHelper.square(apothem));
+        Vector3d dir = getDirection().scale(radius);
+        double x = MathHelper.clamp(dir.x, -apothem, apothem);
+        double z = MathHelper.clamp(dir.z, -apothem, apothem);
         return pos.add(x, 0, z);
     }
-    public static AABB getBoxAbovePosition(Vec3 pos, float width, float height) {
-        Vec3 bottom = pos.add(-width / 2, 0, -width / 2);
-        Vec3 top = bottom.add(width, height, width);
-        return new AABB(bottom, top);
+    public static AxisAlignedBB getBoxAbovePosition(Vector3d pos, float width, float height) {
+        Vector3d bottom = pos.add(-width / 2, 0, -width / 2);
+        Vector3d top = bottom.add(width, height, width);
+        return new AxisAlignedBB(bottom, top);
     }
     public static float[] brightenColor(float[] color, float delta) {
         float r = Math.min(1, color[0] + delta);

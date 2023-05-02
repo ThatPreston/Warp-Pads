@@ -1,9 +1,9 @@
 package thatpreston.warppads.server;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.NBTUtil;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.math.BlockPos;
 
 public class WarpPadInfo {
     private final BlockPos pos;
@@ -13,20 +13,20 @@ public class WarpPadInfo {
         this.pos = pos;
         this.name = name;
     }
-    public WarpPadInfo(CompoundTag tag) {
-        pos = NbtUtils.readBlockPos(tag);
+    public WarpPadInfo(CompoundNBT tag) {
+        pos = NBTUtil.readBlockPos(tag);
         name = tag.getString("name");
     }
-    public WarpPadInfo(FriendlyByteBuf data) {
+    public WarpPadInfo(PacketBuffer data) {
         pos = data.readBlockPos();
         name = data.readUtf();
     }
-    public CompoundTag save() {
-        CompoundTag tag = NbtUtils.writeBlockPos(pos);
+    public CompoundNBT save() {
+        CompoundNBT tag = NBTUtil.writeBlockPos(pos);
         tag.putString("name", name);
         return tag;
     }
-    public void write(FriendlyByteBuf data) {
+    public void write(PacketBuffer data) {
         data.writeBlockPos(pos);
         data.writeUtf(name);
     }

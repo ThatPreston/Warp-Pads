@@ -1,10 +1,9 @@
 package thatpreston.warppads.network;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.network.NetworkEvent;
 import thatpreston.warppads.server.WarpPadData;
 import thatpreston.warppads.server.WarpPadInfo;
 
@@ -17,18 +16,17 @@ public class EditWarpName {
         this.pos = pos;
         this.name = name;
     }
-    public static void encode(EditWarpName message, FriendlyByteBuf data) {
+    public static void encode(EditWarpName message, PacketBuffer data) {
         data.writeBlockPos(message.pos);
         data.writeUtf(message.name);
     }
-    public static EditWarpName decode(FriendlyByteBuf data) {
+    public static EditWarpName decode(PacketBuffer data) {
         return new EditWarpName(data.readBlockPos(), data.readUtf());
     }
     public static void handle(EditWarpName message, Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> {
-            ServerPlayer player = context.get().getSender();
-            ServerLevel level = player.getLevel();
-            WarpPadData.get(level).addWarpPad(new WarpPadInfo(message.pos, message.name));
+            ServerPlayerEntity player = context.get().getSender();
+            WarpPadData.get(player.getLevel()).addWarpPad(new WarpPadInfo(message.pos, message.name));
         });
         context.get().setPacketHandled(true);
     }

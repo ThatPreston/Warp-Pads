@@ -1,18 +1,18 @@
 package thatpreston.warppads.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Inventory;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import thatpreston.warppads.menu.WarpConfigMenu;
 
-public class WarpConfigScreen extends AbstractContainerScreen<WarpConfigMenu> {
+public class WarpConfigScreen extends ContainerScreen<WarpConfigMenu> {
     private static final ResourceLocation BACKGROUND = new ResourceLocation("warppads", "textures/gui/warp_config.png");
-    private EditBox name;
-    public WarpConfigScreen(WarpConfigMenu menu, Inventory inventory, Component title) {
+    private TextFieldWidget name;
+    public WarpConfigScreen(WarpConfigMenu menu, PlayerInventory inventory, ITextComponent title) {
         super(menu, inventory, title);
         this.imageHeight = 133;
         this.inventoryLabelY = this.imageHeight - 94;
@@ -22,7 +22,7 @@ public class WarpConfigScreen extends AbstractContainerScreen<WarpConfigMenu> {
         super.init();
         this.titleLabelX = (this.imageWidth - this.font.width(this.title)) / 2;
         this.titleLabelY = 6;
-        EditBox name = new EditBox(this.font, this.leftPos + 24, this.topPos + 22, 104, 12, Component.translatable("container.warppads.warp_config.hint"));
+        TextFieldWidget name = new TextFieldWidget(this.font, this.leftPos + 24, this.topPos + 22, 104, 12, new TranslationTextComponent("container.warppads.warp_config.hint"));
         name.setCanLoseFocus(true);
         name.setTextColor(-1);
         name.setTextColorUneditable(-1);
@@ -42,13 +42,13 @@ public class WarpConfigScreen extends AbstractContainerScreen<WarpConfigMenu> {
         super.onClose();
     }
     @Override
-    protected void renderLabels(PoseStack stack, int mouseX, int mouseY) {
+    protected void renderLabels(MatrixStack stack, int mouseX, int mouseY) {
         this.font.draw(stack, this.title, (float)this.titleLabelX, (float)this.titleLabelY, 4210752);
-        this.font.draw(stack, this.playerInventoryTitle, (float)this.inventoryLabelX, (float)this.inventoryLabelY, 4210752);
+        this.font.draw(stack, this.inventory.getDisplayName(), (float)this.inventoryLabelX, (float)this.inventoryLabelY, 4210752);
     }
     @Override
-    protected void renderBg(PoseStack stack, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.setShaderTexture(0, BACKGROUND);
+    protected void renderBg(MatrixStack stack, float partialTicks, int mouseX, int mouseY) {
+        minecraft.getTextureManager().bind(BACKGROUND);
         int x = this.leftPos;
         int y = this.topPos;
         blit(stack, x, y, 0, 0, this.imageWidth, this.imageHeight);
@@ -57,7 +57,7 @@ public class WarpConfigScreen extends AbstractContainerScreen<WarpConfigMenu> {
         }
     }
     @Override
-    public void render(PoseStack stack, int mouseX, int mouseY, float partialTicks) {
+    public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
         super.render(stack, mouseX, mouseY, partialTicks);
         this.name.render(stack, mouseX, mouseY, partialTicks);
         this.renderTooltip(stack, mouseX, mouseY);

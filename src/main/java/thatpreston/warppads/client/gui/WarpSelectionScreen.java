@@ -1,12 +1,12 @@
 package thatpreston.warppads.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Inventory;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import thatpreston.warppads.menu.WarpSelectionMenu;
 import thatpreston.warppads.network.PacketHandler;
 import thatpreston.warppads.network.WarpRequest;
@@ -15,14 +15,14 @@ import thatpreston.warppads.server.WarpPadInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WarpSelectionScreen extends AbstractContainerScreen<WarpSelectionMenu> {
+public class WarpSelectionScreen extends ContainerScreen<WarpSelectionMenu> {
     private static final ResourceLocation BACKGROUND = new ResourceLocation("warppads", "textures/gui/warp_selection.png");
     private List<WarpButton> warpButtons = new ArrayList<>();
     private float scrollOffset;
     private int startButton;
     private int extraButtons;
     private boolean scrolling;
-    public WarpSelectionScreen(WarpSelectionMenu menu, Inventory inventory, Component title) {
+    public WarpSelectionScreen(WarpSelectionMenu menu, PlayerInventory inventory, ITextComponent title) {
         super(menu, inventory, title);
     }
     @Override
@@ -33,7 +33,7 @@ public class WarpSelectionScreen extends AbstractContainerScreen<WarpSelectionMe
         List<WarpPadInfo> warpPads = this.menu.getWarpPads();
         for(WarpPadInfo info : warpPads) {
             if(!info.getPos().equals(this.menu.getPos())) {
-                WarpButton warpButton = new WarpButton(this.leftPos + 7, this.topPos, 144, 23, Component.literal(info.getName()), button -> {
+                WarpButton warpButton = new WarpButton(this.leftPos + 7, this.topPos, 144, 23, new StringTextComponent(info.getName()), button -> {
                     PacketHandler.INSTANCE.sendToServer(new WarpRequest(this.menu.getPos(), info.getPos()));
                     onClose();
                 });
@@ -47,7 +47,7 @@ public class WarpSelectionScreen extends AbstractContainerScreen<WarpSelectionMe
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if(scrolling && extraButtons > 0) {
             int y = this.topPos + 18;
-            scrollOffset = Mth.clamp((float)(mouseY - y - 7.5F) / 123, 0, 1);
+            scrollOffset = MathHelper.clamp((float)(mouseY - y - 7.5F) / 123, 0, 1);
             startButton = Math.max((int)(scrollOffset * extraButtons + 0.5F), 0);
             return true;
         } else {
@@ -58,7 +58,7 @@ public class WarpSelectionScreen extends AbstractContainerScreen<WarpSelectionMe
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         if(extraButtons > 0) {
             float f = (float)delta / (float)extraButtons;
-            scrollOffset = Mth.clamp(scrollOffset - f, 0, 1);
+            scrollOffset = MathHelper.clamp(scrollOffset - f, 0, 1);
             startButton = Math.max((int)(scrollOffset * extraButtons + 0.5F), 0);
         }
         return true;
@@ -76,31 +76,31 @@ public class WarpSelectionScreen extends AbstractContainerScreen<WarpSelectionMe
         return super.mouseClicked(mouseX, mouseY, button);
     }
     @Override
-    protected void renderLabels(PoseStack stack, int mouseX, int mouseY) {
+    protected void renderLabels(MatrixStack stack, int mouseX, int mouseY) {
         this.font.draw(stack, this.title, (float)this.titleLabelX, (float)this.titleLabelY, 4210752);
     }
     @Override
-    protected void renderBg(PoseStack stack, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.setShaderTexture(0, BACKGROUND);
+    protected void renderBg(MatrixStack stack, float partialTicks, int mouseX, int mouseY) {
+        minecraft.getTextureManager().bind(BACKGROUND);
         blit(stack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
         int x = this.leftPos + 157;
         int y = this.topPos + 18 + (int)(123 * scrollOffset);
         int extraButtons = warpButtons.size() - 6;
         blit(stack, x, y, 232 + (extraButtons > 0 ? 0 : 12), 0, 12, 15);
     }
-    private void renderButtons(PoseStack stack, float partialTicks, int mouseX, int mouseY) {
+    private void renderButtons(MatrixStack stack, float partialTicks, int mouseX, int mouseY) {
         for(int i = 0; i < warpButtons.size(); i++) {
             int index = i - startButton;
             if(index >= 0 && index < 6) {
                 WarpButton button = warpButtons.get(i);
                 button.y = this.topPos + 18 + 23 * index;
-                RenderSystem.setShaderTexture(0, BACKGROUND);
+                minecraft.getTextureManager().bind(BACKGROUND);
                 button.render(stack, mouseX, mouseY, partialTicks);
             }
         }
     }
     @Override
-    public void render(PoseStack stack, int mouseX, int mouseY, float partialTicks) {
+    public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
         super.render(stack, mouseX, mouseY, partialTicks);
         renderButtons(stack, partialTicks, mouseX, mouseY);
         this.renderTooltip(stack, mouseX, mouseY);

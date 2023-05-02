@@ -1,33 +1,34 @@
 package thatpreston.warppads.menu;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.DyeItem;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.inventory.container.SimpleNamedContainerProvider;
+import net.minecraft.inventory.container.Slot;
+import net.minecraft.item.DyeItem;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
-import org.jetbrains.annotations.NotNull;
+import org.antlr.v4.runtime.misc.NotNull;
 import thatpreston.warppads.WarpPads;
 import thatpreston.warppads.network.EditWarpName;
 import thatpreston.warppads.network.PacketHandler;
 import thatpreston.warppads.server.WarpPadInfo;
 
-public class WarpConfigMenu extends AbstractContainerMenu {
-    public static final Component TITLE = Component.translatable("container.warppads.warp_config");
-    private final ContainerLevelAccess levelAccess;
+public class WarpConfigMenu extends Container {
+    public static final ITextComponent TITLE = new TranslationTextComponent("container.warppads.warp_config");
+    private final IWorldPosCallable worldPosCallable;
     private final SlotItemHandler dyeSlot;
     private WarpPadInfo info;
-    public WarpConfigMenu(int id, Inventory inventory, ContainerLevelAccess levelAccess, IItemHandler itemHandler) {
+    public WarpConfigMenu(int id, PlayerInventory inventory, IWorldPosCallable worldPosCallable, IItemHandler itemHandler) {
         super(WarpPads.WARP_CONFIG.get(), id);
-        this.levelAccess = levelAccess;
+        this.worldPosCallable = worldPosCallable;
         dyeSlot = new SlotItemHandler(itemHandler, 0, 138, 18);
         this.addSlot(dyeSlot);
         for(int x = 0; x < 9; x++) {
@@ -39,12 +40,12 @@ public class WarpConfigMenu extends AbstractContainerMenu {
             this.addSlot(new Slot(inventory, x, 8 + x * 18, 109));
         }
     }
-    public WarpConfigMenu(int id, Inventory inventory, ContainerLevelAccess levelAccess, WarpPadInfo entry, IItemHandler itemHandler) {
-        this(id, inventory, levelAccess, itemHandler);
-        this.info = entry;
+    public WarpConfigMenu(int id, PlayerInventory inventory, IWorldPosCallable worldPosCallable, WarpPadInfo info, IItemHandler itemHandler) {
+        this(id, inventory, worldPosCallable, itemHandler);
+        this.info = info;
     }
-    public WarpConfigMenu(int id, Inventory inventory, FriendlyByteBuf data) {
-        this(id, inventory, ContainerLevelAccess.NULL, new ItemStackHandler(1) {
+    public WarpConfigMenu(int id, PlayerInventory inventory, PacketBuffer data) {
+        this(id, inventory, IWorldPosCallable.NULL, new ItemStackHandler(1) {
             @Override
             public int getSlotLimit(int slot) {
                 return 1;
@@ -56,11 +57,11 @@ public class WarpConfigMenu extends AbstractContainerMenu {
         });
         info = new WarpPadInfo(data);
     }
-    public static MenuProvider getMenuProvider(WarpPadInfo info, IItemHandler itemHandler) {
-        return new SimpleMenuProvider((id, inventory, player) -> new WarpConfigMenu(id, inventory, ContainerLevelAccess.create(player.getLevel(), info.getPos()), info, itemHandler), TITLE);
+    public static INamedContainerProvider getMenuProvider(WarpPadInfo info, IItemHandler itemHandler) {
+        return new SimpleNamedContainerProvider((id, inventory, player) -> new WarpConfigMenu(id, inventory, IWorldPosCallable.create(player.level, info.getPos()), info, itemHandler), TITLE);
     }
     @Override
-    public ItemStack quickMoveStack(Player player, int index) {
+    public ItemStack quickMoveStack(PlayerEntity player, int index) {
         ItemStack empty = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
         if(slot != null && slot.hasItem()) {
@@ -78,8 +79,8 @@ public class WarpConfigMenu extends AbstractContainerMenu {
         return empty;
     }
     @Override
-    public boolean stillValid(Player player) {
-        return stillValid(levelAccess, player, WarpPads.WARP_PAD_BLOCK.get());
+    public boolean stillValid(PlayerEntity player) {
+        return stillValid(worldPosCallable, player, WarpPads.WARP_PAD_BLOCK.get());
     }
     public WarpPadInfo getInfo() {
         return info;

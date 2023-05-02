@@ -1,37 +1,38 @@
 package thatpreston.warppads.menu;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.inventory.container.SimpleNamedContainerProvider;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import thatpreston.warppads.WarpPads;
 import thatpreston.warppads.server.WarpPadInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class WarpSelectionMenu extends AbstractContainerMenu {
-    public static final Component TITLE = Component.translatable("container.warppads.warp_selection");
-    private final ContainerLevelAccess levelAccess;
+public class WarpSelectionMenu extends Container {
+    public static final ITextComponent TITLE = new TranslationTextComponent("container.warppads.warp_selection");
+    private final IWorldPosCallable worldPosCallable;
     private List<WarpPadInfo> warpPads;
     private BlockPos pos;
-    public WarpSelectionMenu(int id, ContainerLevelAccess levelAccess) {
+    public WarpSelectionMenu(int id, IWorldPosCallable worldPosCallable) {
         super(WarpPads.WARP_SELECTION.get(), id);
-        this.levelAccess = levelAccess;
+        this.worldPosCallable = worldPosCallable;
     }
-    public WarpSelectionMenu(int id, ContainerLevelAccess levelAccess, BlockPos pos, List<WarpPadInfo> warpPads) {
-        this(id, levelAccess);
+    public WarpSelectionMenu(int id, IWorldPosCallable worldPosCallable, BlockPos pos, List<WarpPadInfo> warpPads) {
+        this(id, worldPosCallable);
         this.pos = pos;
         this.warpPads = warpPads;
     }
-    public WarpSelectionMenu(int id, Inventory inventory, FriendlyByteBuf data) {
-        this(id, ContainerLevelAccess.NULL);
+    public WarpSelectionMenu(int id, PlayerInventory inventory, PacketBuffer data) {
+        this(id, IWorldPosCallable.NULL);
         pos = data.readBlockPos();
         warpPads = new ArrayList<>();
         int count = data.readInt();
@@ -40,16 +41,16 @@ public class WarpSelectionMenu extends AbstractContainerMenu {
             warpPads.add(entry);
         }
     }
-    public static MenuProvider getMenuProvider(BlockPos pos, List<WarpPadInfo> warpPads) {
-        return new SimpleMenuProvider((id, inventory, player) -> new WarpSelectionMenu(id, ContainerLevelAccess.create(player.getLevel(), pos), pos, warpPads), TITLE);
+    public static INamedContainerProvider getMenuProvider(BlockPos pos, List<WarpPadInfo> warpPads) {
+        return new SimpleNamedContainerProvider((id, inventory, player) -> new WarpSelectionMenu(id, IWorldPosCallable.create(player.level, pos), pos, warpPads), TITLE);
     }
     @Override
-    public ItemStack quickMoveStack(Player player, int index) {
+    public ItemStack quickMoveStack(PlayerEntity player, int index) {
         return ItemStack.EMPTY;
     }
     @Override
-    public boolean stillValid(Player player) {
-        return stillValid(levelAccess, player, WarpPads.WARP_PAD_BLOCK.get());
+    public boolean stillValid(PlayerEntity player) {
+        return stillValid(worldPosCallable, player, WarpPads.WARP_PAD_BLOCK.get());
     }
     public BlockPos getPos() {
         return pos;
