@@ -48,7 +48,10 @@ public class WarpPadInfoHolder {
         return dirty;
     }
     public void addWarpPad(WarpPadInfo info) {
-        warpPadMap.put(info.getPos(), info);
+        WarpPadInfo old = warpPadMap.put(info.getPos(), info);
+        if(old != null) {
+            warpPadList.remove(old);
+        }
         warpPadList.add(info);
         setDirty(true);
     }
