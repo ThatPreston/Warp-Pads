@@ -29,8 +29,8 @@ public class WarpPadData extends WorldSavedData {
     public void load(CompoundNBT tag) {
         ListNBT list = tag.getList("holders", Constants.NBT.TAG_COMPOUND);
         for(INBT listTag : list) {
-            if(listTag instanceof CompoundNBT holder) {
-                addHolder(new WarpPadInfoHolder(holder));
+            if(listTag instanceof CompoundNBT) {
+                addHolder(new WarpPadInfoHolder((CompoundNBT)listTag));
             }
         }
     }

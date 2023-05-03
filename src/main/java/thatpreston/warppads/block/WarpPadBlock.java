@@ -34,9 +34,11 @@ public class WarpPadBlock extends ContainerBlock {
     @Override
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
         TileEntity entity = world.getBlockEntity(pos);
-        if(entity instanceof WarpPadTileEntity warpPad) {
-            if(world instanceof ServerWorld serverWorld && player instanceof ServerPlayerEntity serverPlayer) {
-                WarpPadInfoHolder holder = WarpPadData.get(serverWorld);
+        if(entity instanceof WarpPadTileEntity) {
+            WarpPadTileEntity warpPad = (WarpPadTileEntity)entity;
+            if(player instanceof ServerPlayerEntity) {
+                ServerPlayerEntity serverPlayer = (ServerPlayerEntity)player;
+                WarpPadInfoHolder holder = WarpPadData.get(serverPlayer.getLevel());
                 if(!holder.hasWarpPad(pos) || player.isCrouching()) {
                     WarpPadInfo info = holder.getNewWarpPad(pos);
                     INamedContainerProvider provider = WarpConfigMenu.getMenuProvider(info, warpPad.getItemStackHandler());
@@ -61,7 +63,8 @@ public class WarpPadBlock extends ContainerBlock {
     public void tick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
         if(!world.isClientSide) {
             TileEntity entity = world.getBlockEntity(pos);
-            if(entity instanceof WarpPadTileEntity warpPad) {
+            if(entity instanceof WarpPadTileEntity) {
+                WarpPadTileEntity warpPad = (WarpPadTileEntity)entity;
                 warpPad.handleScheduledTick(world, pos);
             }
         }
@@ -72,10 +75,11 @@ public class WarpPadBlock extends ContainerBlock {
         return new WarpPadTileEntity();
     }
     @Override
-    public void onRemove(BlockState state, World level, BlockPos pos, BlockState newState, boolean moving) {
-        super.onRemove(state, level, pos, newState, moving);
-        if(level instanceof ServerWorld serverLevel) {
-            WarpPadData.get(serverLevel).removeWarpPad(pos);
+    public void onRemove(BlockState state, World world, BlockPos pos, BlockState newState, boolean moving) {
+        super.onRemove(state, world, pos, newState, moving);
+        if(world instanceof ServerWorld) {
+            ServerWorld serverWorld = (ServerWorld)world;
+            WarpPadData.get(serverWorld).removeWarpPad(pos);
         }
     }
     @Override

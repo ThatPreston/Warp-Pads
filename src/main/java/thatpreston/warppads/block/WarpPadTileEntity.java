@@ -106,8 +106,9 @@ public class WarpPadTileEntity extends TileEntity implements IForgeTileEntity, I
             }
         }
         scheduleTick(world, pos, 10);
-        if(world.getBlockEntity(targetPos) instanceof WarpPadTileEntity toPad && !toPad.isRemoved()) {
-            toPad.tryWarpIn(world);
+        TileEntity toEntity = world.getChunk(targetPos).getBlockEntity(targetPos);
+        if(toEntity instanceof WarpPadTileEntity && !toEntity.isRemoved()) {
+            ((WarpPadTileEntity)toEntity).tryWarpIn(world);
         } else if(players == 0) {
             WarpPadInfo info = WarpPadData.get(world).getWarpPad(targetPos);
             if(info != null) {
@@ -143,11 +144,14 @@ public class WarpPadTileEntity extends TileEntity implements IForgeTileEntity, I
     public static void handleWarpRequest(ServerPlayerEntity player, BlockPos fromPos, BlockPos toPos) {
         ServerWorld world = player.getLevel();
         TileEntity fromEntity = world.getBlockEntity(fromPos);
-        if(fromEntity instanceof WarpPadTileEntity fromPad && !fromPad.isWarping()) {
-            WarpPadInfo info = WarpPadData.get(world).getWarpPad(toPos);
-            if(info != null && !info.isWarping()) {
-                info.setWarping(true);
-                fromPad.warpOut(player, world, fromPos, toPos);
+        if(fromEntity instanceof WarpPadTileEntity) {
+            WarpPadTileEntity fromPad = (WarpPadTileEntity)fromEntity;
+            if(!fromPad.isWarping()) {
+                WarpPadInfo info = WarpPadData.get(world).getWarpPad(toPos);
+                if(info != null && !info.isWarping()) {
+                    info.setWarping(true);
+                    fromPad.warpOut(player, world, fromPos, toPos);
+                }
             }
         }
     }
@@ -174,7 +178,8 @@ public class WarpPadTileEntity extends TileEntity implements IForgeTileEntity, I
     }
     public void cacheColor() {
         ItemStack stack = itemStackHandler.getStackInSlot(0);
-        if(!stack.isEmpty() && stack.getItem() instanceof DyeItem dye) {
+        if(!stack.isEmpty() && stack.getItem() instanceof DyeItem) {
+            DyeItem dye = (DyeItem)stack.getItem();
             float[] color = dye.getDyeColor().getTextureDiffuseColors();
             cachedColor = WarpPadUtils.brightenColor(color, 0.3F);
         } else {
@@ -187,8 +192,8 @@ public class WarpPadTileEntity extends TileEntity implements IForgeTileEntity, I
     @Override
     public void onLoad() {
         super.onLoad();
-        if(level instanceof ServerWorld world) {
-            tryWarpIn(world);
+        if(level instanceof ServerWorld) {
+            tryWarpIn((ServerWorld)level);
         }
     }
     @Override

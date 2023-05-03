@@ -23,8 +23,8 @@ public class WarpPadInfoHolder {
         this.worldKey = key.orElse(World.OVERWORLD);
         ListNBT list = tag.getList("warpPads", Constants.NBT.TAG_COMPOUND);
         for(INBT listTag : list) {
-            if(listTag instanceof CompoundNBT info) {
-                addWarpPad(new WarpPadInfo(info));
+            if(listTag instanceof CompoundNBT) {
+                addWarpPad(new WarpPadInfo((CompoundNBT)listTag));
             }
         }
     }
