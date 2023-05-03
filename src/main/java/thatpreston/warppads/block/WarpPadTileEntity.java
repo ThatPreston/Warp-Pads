@@ -7,6 +7,7 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.DyeItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
@@ -192,8 +193,9 @@ public class WarpPadTileEntity extends TileEntity implements IForgeTileEntity, I
     }
     @Override
     public CompoundNBT save(CompoundNBT tag) {
+        super.save(tag);
         tag.put("inv", itemStackHandler.serializeNBT());
-        return super.save(tag);
+        return tag;
     }
     @Override
     public void load(BlockState state, CompoundNBT tag) {
@@ -210,7 +212,12 @@ public class WarpPadTileEntity extends TileEntity implements IForgeTileEntity, I
     @Nullable
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(worldPosition, 0, getUpdateTag());
+        return new SUpdateTileEntityPacket(worldPosition, -1, getUpdateTag());
+    }
+    @Override
+    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
+        super.onDataPacket(net, packet);
+        onSync(packet.getTag());
     }
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
