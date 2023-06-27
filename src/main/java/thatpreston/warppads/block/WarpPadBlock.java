@@ -29,7 +29,7 @@ import java.util.Random;
 
 public class WarpPadBlock extends ContainerBlock {
     public WarpPadBlock() {
-        super(AbstractBlock.Properties.of(Material.STONE));
+        super(AbstractBlock.Properties.of(Material.STONE).requiresCorrectToolForDrops().strength(1.5F, 6.0F));
     }
     @Override
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
