@@ -1,7 +1,6 @@
 package thatpreston.warppads.block;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -32,7 +31,7 @@ import java.util.List;
 
 public class WarpPadBlock extends BaseEntityBlock {
     public WarpPadBlock() {
-        super(BlockBehaviour.Properties.of(Material.STONE));
+        super(BlockBehaviour.Properties.of(Material.STONE).requiresCorrectToolForDrops().strength(1.5F, 6.0F));
     }
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
